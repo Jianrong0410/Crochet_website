@@ -1,0 +1,23 @@
+# 暫存與虛擬環境
+.venv/
+env/
+venv/
+__pycache__/
+*.pyc
+
+# 模型與大檔
+*.pt
+*.zip
+*.tar
+*.onnx
+*.weights
+
+# 資料庫與暫存
+*.db
+database/
+history_records/
+user_data/
+
+# 上傳與辨識結果
+static/uploads/
+static/results/
