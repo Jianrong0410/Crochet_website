@@ -1489,4 +1489,9 @@ if __name__ == '__main__':
     os.makedirs('static/results', exist_ok=True)
     os.makedirs('static/avatars', exist_ok=True)
     # 啟動 Flask 伺服器（debug 模式）
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(debug=True)
+else:
+    # Vercel 執行進入點（必要）
+    # 不執行 run()，直接提供 app 物件給 Vercel 使用
+    app = app
