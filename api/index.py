@@ -100,7 +100,8 @@ def gen_6_code():
 # SQLite：users + results + password_resets
 # -----------------------------
 # SQLite 資料庫檔案路徑（與 index.py 同資料夾）
-DB_PATH = os.path.join(os.path.dirname(__file__), 'index.db')
+# DB_PATH = os.path.join(os.path.dirname(__file__), 'index.db')
+DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'index.db')
 
 def get_db():
     """取得資料庫連線，並讓查詢結果可用欄位名存取（Row）。"""
