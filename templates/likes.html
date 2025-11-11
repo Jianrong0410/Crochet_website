@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>我按過的讚</title>
+  <!-- 
+    顯示使用者曾經按過「讚」的貼文清單。
+    每筆資料包含貼文作者、內容、圖片與連結，可點擊前往貼文詳細頁面。
+    若尚未按過讚，則顯示提示文字。
+  -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 24px;
+      color: #333;
+    }
+
+    a.link {
+      color: #2563eb;
+      text-decoration: none;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .author {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #eee;
+    }
+
+    .post-img {
+      width: 100%;
+      max-width: 680px;
+      border-radius: 10px;
+      margin-top: 8px;
+    }
+
+    .meta {
+      font-size: 13px;
+      color: #777;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div style="margin-bottom:12px">
+    <a class="link" href="{{ url_for('feed') }}">← 返回貼文牆</a>
+  </div>
+  <!-- ===== 已按讚的貼文清單 ===== -->
+  {% for it in items %}
+  <div class="card">
+    <div class="author">
+      <img class="avatar" src="{{ it.author_avatar }}" alt="">
+      <div>
+        <div>{{ it.author_name }}</div>
+        <div class="meta">{{ it.created_at }}</div>
+      </div>
+    </div>
+ <!-- 若貼文有文字內容則顯示 -->
+    {% if it.content %}
+      <div style="white-space:pre-wrap; line-height:1.6">{{ it.content }}</div>
+    {% endif %}
+    {% if it.image_url %}
+      <img class="post-img" src="{{ it.image_url }}" alt="">
+    {% endif %}
+    <div style="margin-top:8px">
+      <a class="link" href="{{ url_for('post_detail', pid=it.post_id) }}">前往貼文</a>
+    </div>
+  </div>
+  {% else %}
+    <p style="color:#666">你還沒有按過讚</p>
+  {% endfor %}
+</body>
+</html>

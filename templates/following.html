@@ -1,0 +1,54 @@
+<!-- followers.html -->
+<!doctype html>
+<html lang="zh-TW">
+<head><meta charset="utf-8"><title>{{ owner['username'] }} 的粉絲</title>
+  <!-- 
+    顯示指定使用者（owner）的「粉絲列表」。
+    每位粉絲顯示名稱與電子郵件，並附連結可前往該粉絲的個人頁面。
+    若尚無粉絲則顯示提示訊息。
+  -->
+  <style>
+    .wrap {
+      max-width: 720px;
+      margin: 32px auto;
+      padding: 0 16px;
+      font-family: Arial, sans-serif;
+    }
+
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      background: #fff;
+    }
+
+    .name {
+      font-weight: 700;
+    }
+
+    a {
+      color: #6b4aa1;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== 粉絲清單外框 ===== -->
+<div class="wrap">
+  <h2>👥 {{ owner['username'] }} 的粉絲</h2>
+  {% if rows %}
+    {% for r in rows %}
+      <div class="item">
+        <div><div class="name">{{ r['username'] }}</div><div>{{ r['email'] }}</div></div>
+        <a href="{{ url_for('profile_page', username=r['username']) }}">查看個人頁</a>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>尚無粉絲。</p>
+  {% endif %}
+</div>
+</body></html>

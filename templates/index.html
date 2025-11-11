@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <!-- RWD 響應式設計設定：讓頁面在手機、平板等裝置上能自適應寬度 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>鉤織圖辨識系統</title>
+  <style>
+  html, body {
+    height: 100%;
+    background: transparent; /* 背景交由偽元素處理 */
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    margin: 40px;
+    color: #333;
+    font-size: 18px;
+  }
+
+  /* ✅ 用偽元素鋪滿整個畫面當背景層 */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(rgba(255,255,255,.8), rgba(255,255,255,.8)),
+      url("{{ url_for('static', filename='img/crochet-bg.jpg') }}")
+      center / cover no-repeat;
+  }
+
+  /* 📱 行動裝置相容調整 */
+  @media (max-width: 640px) {
+    body { margin: 16px; font-size: 16px; }
+    body::before {
+      position: absolute;
+      min-height: 100dvh;
+      height: 100%;
+      background:
+        linear-gradient(rgba(255,255,255,.82), rgba(255,255,255,.82)),
+        url("{{ url_for('static', filename='img/crochet-bg.jpg') }}")
+        center / cover no-repeat;
+    }
+  }
+
+    h1 {
+      text-align: center;             /* 標題置中 */
+      margin-bottom: 30px;            /* 標題底部間距 */
+      color: #444;                    /* 標題文字顏色 */
+      font-size: 30px;                /* 標題字體大小 */
+    }
+
+	/* === 上傳區樣式 === */
+    .upload-box {
+      text-align: center;             /* 內容置中 */
+      margin-bottom: 10px;            /* 底部間距 */
+      padding: 20px;                  /* 內距 */
+      border: 2px dashed #aaa;        /* 虛線邊框 */
+      border-radius: 10px;            /* 圓角邊框 */
+      background: #fff;               /* 白色背景 */
+    }
+	
+    .upload-box input[type=file] {
+      margin: 10px 0;                 /* 上下留白 */
+    }
+	
+    .upload-box button {
+      margin-top: 1px;                /* 與上方間距 */
+      padding: 12px 20px;             /* 按鈕內距 */
+      font-size: 1.1em;               /* 字體稍大 */
+      border: none;                   /* 移除邊框 */
+      border-radius: 6px;             /* 圓角按鈕 */
+      background: #967AA1;            /* 主色：紫灰色 */
+      color: #fff;                    /* 文字白色 */
+      cursor: pointer;                /* 滑鼠變為可點擊手型 */
+    }
+	
+    .upload-box button:hover { background: #AAA1C8; }
+    /* 滑鼠移入按鈕時的變色效果 */
+	
+    .upload-box .camera-btn {
+      display: inline-block;          /* 使拍照按鈕與上傳按鈕並排 */
+      margin-left: 10px;
+      vertical-align: middle;
+      padding: 12px 20px;
+      font-size: 1.1em;
+      border: none;
+      border-radius: 6px;
+      background: #967AA1;
+      color: #fff;
+      cursor: pointer;
+    }
+	
+    .upload-box .camera-btn:hover { background: #AAA1C8; }
+    /* 拍照按鈕的滑鼠懸停顏色變化 */
+
+    /* === 按鈕列區塊（上傳與拍照） === */
+    .btn-row {
+      display: flex;
+      justify-content: center;        /* 水平置中 */
+      align-items: center;            /* 垂直置中 */
+      gap: 20px;                      /* 兩按鈕間距 */
+      margin-top: 10px;
+    }
+
+    /* === 勾選輸出選項區 === */
+    .checkbox-area {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 18px;
+      color: #333;
+    }
+	
+    .checkbox-area input[type=checkbox] {
+      accent-color: #ff6600;          /* 勾選框主色為橘色 */
+      transform: scale(1.3);          /* 放大勾選框 */
+      margin-right: 6px;
+    }
+	
+    .checkbox-area label {
+      margin: 0 15px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    /* === 上傳進度條 === */
+    .progress-container {
+      width: 80%;                     /* 寬度 80% */
+      margin: 20px auto;              /* 水平置中 */
+      height: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      background: #eee;
+      display: none;                  /* 初始隱藏 */
+    }
+	
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: #D5C6E0;            /* 紫灰漸層色 */
+      border-radius: 10px;
+      transition: width .2s;          /* 寬度平滑變化 */
+    }
+	
+    .progress-text {
+      text-align: center;
+      font-size: 18px;
+      margin-top: 10px;
+      display: none;                  /* 初始隱藏 */
+    }
+
+    /* === 頂部導覽列 === */
+    .topbar {
+      display: flex;
+      justify-content: space-between; /* 左右兩側分佈 */
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      flex-wrap: nowrap;
+      margin-bottom: 12px;
+    }
+	
+    .top-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: nowrap;
+    }
+
+    .top-right {
+      text-align: right;
+    }
+	
+    .top-right a {
+      color: #967AA1;
+      margin-left: 12px;
+      text-decoration: none;          /* 移除底線 */
+    }
+
+    .pill-link {
+      text-decoration: none;
+      color: #333;
+      background: #e0e0e0;
+      padding: 8px 14px;
+      border-radius: 6px;
+      display: inline-block;
+    }
+	
+    /* 使用說明 / 關於 按鈕共用樣式 */
+    .guide-btn, .about-btn {
+      padding: 10px 20px;
+      border: 2px solid #6b7280;
+      border-radius: 8px;
+      background: #fff;
+      color: #444;
+      font-size: 16px;
+      cursor: pointer;
+      transition: .25s;
+    }
+	
+    .guide-btn:hover, .about-btn:hover {
+      background: #f3f4f6;            /* 滑鼠懸停變亮灰 */
+    }
+	
+    /* === 小螢幕版（手機）設定 === */
+    @media (max-width:640px) {
+      body { margin:16px; font-size:16px; }
+      .topbar { flex-wrap:wrap; }     /* 頂欄可換行 */
+      .top-right { width:100%; text-align:right; }
+    }
+
+    /* 通用彈窗 */
+    .modal-mask {
+      display: none;                  /* 初始隱藏 */
+      position: fixed;                /* 固定於畫面 */
+      inset: 0;                       /* 佔滿整個視窗 */
+      background: rgba(0,0,0,.5);     /* 半透明黑底 */
+      z-index: 9999;                  /* 顯示在最上層 */
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+	
+    .modal-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 25px;
+      width: 85%;
+      max-width: 650px;
+      box-shadow: 0 4px 15px rgba(0,0,0,.25);
+      text-align: left;
+    }
+
+    .modal-card h2 {
+      text-align: center;
+      color: #333;
+      margin-top: 0;
+    }
+	
+    .modal-actions {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .modal-close {
+      padding: 8px 18px;
+      background: #967AA1;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    /* === 相機共用區樣式 === */
+    .camera-wrap {
+      display: flex;
+      flex-direction: column;
+    }
+	
+    #cameraVideo, #cameraCanvas {
+      width: 100%;
+      height: auto;
+      background: #000;
+    }
+
+    .camera-controls {
+      margin-top: 16px;
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+	
+    .camera-controls button {
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .camera-controls .danger {
+      background: #ef4444;  /* 紅色：關閉用 */
+      color: #fff;
+    }
+
+    .camera-controls .primary {
+      background: #967AA1;  /* 主色：操作用 */
+      color: #fff;
+    }
+
+    /* === 📱 手機滿版相機畫面設定 === */
+    @media (max-width:899px){
+      #cameraModal { background:#fff; }
+	  
+      #cameraModal .modal-card {
+        width:100vw; height:100vh;
+        max-width:none; max-height:none;
+        border-radius:0; padding:0;
+        box-shadow:none;
+        display:flex; flex-direction:column;
+      }
+	  
+      #cameraModal .modal-card h2 {
+        font-size:26px; margin:12px 0; color:#333;
+      }
+	  
+      #cameraModal .camera-wrap {
+        flex:1; min-height:0; display:flex; flex-direction:column;
+      }
+	  
+      .cam-frame {
+        flex:1; min-height:60vh; position:relative; width:100%;
+        overflow:hidden; background:#000;
+      }
+	  
+      #cameraVideo, #cameraCanvas {
+        position:absolute; inset:0; width:100%; height:100%;
+        object-fit:cover;
+      }
+	  
+      .camera-controls {
+        justify-content:center; gap:20px; padding:14px 0;
+        background:#fff; border-top:1px solid #ddd;
+        box-shadow:0 -2px 8px rgba(0,0,0,.08);
+      }
+	  
+      .camera-controls button {
+        font-size:20px; padding:14px 28px; border-radius:14px;
+      }
+    }
+
+    /* === 🖥桌機滿版相機畫面設定 === */
+    @media (min-width:900px){
+      #cameraModal { padding:0; background:#000; }
+      #cameraModal .modal-card {
+        width:100vw; height:100vh;
+        max-width:none; max-height:none;
+        border-radius:0; padding:0;
+        background:#000;
+        display:flex; flex-direction:column;
+        box-shadow:none;
+      }
+	  
+      #cameraModal .modal-card h2 {
+        color:#fff; font-weight:700; font-size:24px;
+        text-align:center; padding:16px 0 0;
+      }
+	  
+      #cameraModal .camera-wrap {
+        position:relative; flex:1; width:100%; height:100%;
+        overflow:hidden; background:#000; padding:0 0 90px;
+      }
+	  
+      #cameraVideo, #cameraCanvas {
+        position:absolute; inset:0; width:100%; height:100%;
+        max-width:none; border-radius:0; object-fit:cover;
+        background:#000;
+      }
+	  
+      #cameraModal .camera-controls {
+        position:absolute; left:50%; bottom:28px;
+        transform:translateX(-50%);
+        margin:0; padding:10px 14px;
+        border-radius:999px;
+        background:rgba(0,0,0,.35);
+        backdrop-filter:blur(6px);
+        z-index:2;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="top-left">
+      <a class="pill-link" href="{{ url_for('history_page') }}">📜 查看我的結果</a>
+      <a id="guideBtn" class="pill-link" type="button">📘 使用說明</a>
+      <a id="aboutBtn" class="pill-link" type="button">ℹ️關於本系統</a>
+	  <a href="{{ url_for('tutorials') }}" class="pill-link">🧵 針法教學</a>
+    </div>
+    <div class="top-right">
+      <span>使用者：{{ username }}</span>
+      <a href="{{ url_for('feed') }}">貼文牆</a>
+      <a href="{{ url_for('my_likes') }}">我按過的讚</a>
+      <a href="{{ url_for('profile') }}">個人介面</a>
+      <a href="{{ url_for('logout') }}">登出</a>
+    </div>
+  </div>
+
+  <h1>鉤織圖辨識系統</h1>
+
+  <div class="upload-box">
+    <form id="uploadForm" action="/predict" method="post" enctype="multipart/form-data">
+      <p style="font-size:20px;">請上傳一張鉤織圖：</p>
+      <input type="file" id="fileInput" name="file" accept="image/*" required>
+      <input type="file" id="captureInput" accept="image/*" capture="environment" style="display:none;">
+      <br>
+      <div class="btn-row">
+        <button type="submit">上傳並辨識</button>
+        <button id="cameraBtn" class="camera-btn" type="button">直接拍照上傳</button>
+      </div>
+      <div class="checkbox-area">
+        <label><input type="checkbox" name="output_original"> 輸出原圖</label>
+        <label><input type="checkbox" name="output_circle"> 輸出圈圖結果</label>
+      </div>
+    </form>
+  </div>
+
+  <!-- 進度條 -->
+  <div class="progress-container" id="progressContainer">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  <div class="progress-text" id="progressText">系統正在努力工作中，請稍候：)</div>
+
+   <!-- 使用說明彈窗 -->
+  <div id="guideModal" class="modal-mask">
+    <div class="modal-card">
+	<h2>📘 鉤織圖辨識系統使用說明</h2>
+	<ol style="line-height:1.9; font-size:17px; color:#333; padding-left: 1.2em;">
+	  <li><b>上傳圖片：</b> 點擊「選擇檔案」或「直接拍照上傳」，上傳一張清晰的鉤織圖。</li>
+	  <li><b>選擇輸出：</b> 可勾選「輸出原圖」或「輸出圈圖結果」，系統會產生對應的視覺化結果。</li>
+	  <li><b>自動辨識：</b> 系統會以訓練模型分析圖案，標出各針法符號與數量。</li>
+	  <li><b>查看結果：</b> 完成後可將結果儲存至「我的結果」，日後隨時可以隨時查看。</li>
+	  <li><b>我的結果：</b> 在「查看我的結果」中可重新命名、下載或刪除辨識紀錄。</li>
+	  <li><b>針法教學：</b> 點擊後可以看到目前有收錄的針法教學，方便學習。</li>
+	  <li><b>貼文牆：</b> 點擊後可以自己發布貼文或觀看其他人的貼文，還可以按讚、留言、追蹤。</li>
+	  <li><b>個人介面：</b> 可以留下自己的紀錄，或一些心得，榮獲一些小粉絲。</li>
+	</ol>
+	<p style="margin-top:10px; color:#555; font-size:16px; line-height:1.6;">
+	💡 <b>小提醒：</b> 拍攝時保持光線充足，避免陰影或模糊；若符號較特別或手繪不清，辨識率可能略降。
+	</p>
+
+      <div class="modal-actions">
+        <button id="closeGuide" class="modal-close">關閉</button>
+      </div>
+    </div>
+  </div>
+
+   <!-- 關於本系統彈窗 -->
+  <div id="aboutModal" class="modal-mask">
+    <div class="modal-card">
+      <h2>ℹ️ 關於本系統</h2>
+      <p>
+        「鉤織圖辨識系統」是一款專為鉤織愛好者、設計師與學習者打造的智慧輔助工具。
+        透過整合人工智慧（AI）影像辨識技術與 YOLO 模型，本系統能自動解析鉤織圖樣中的各種針法符號，
+        並快速計算出各針法的數量，協助您節省手動分析的時間。
+      </p>
+      <p>
+        無論您是要記錄自己的作品、學習不同針法的使用，或是協助整理大量鉤織教材，
+        本系統都能成為您可靠的夥伴。系統亦提供「歷史紀錄」功能，讓使用者能隨時回顧過去的辨識結果。
+      </p>
+      <p>
+        目前支援的針法類型包括：鎖針、短針、中長針、長針、引拔針、爆米花針、棗形針、狗牙針等多種符號，
+        並持續擴充中。您只需上傳一張清晰的鉤織圖，即可獲得辨識結果與視覺化圖像加文字敘述。
+      </p>
+      <div class="modal-actions">
+        <button id="closeAbout" class="modal-close">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📷 相機彈窗 -->
+  <div id="cameraModal" class="modal-mask">
+    <div class="modal-card">
+      <h2>📷 直接拍照上傳</h2>
+	  <!-- 相機外層容器（RWD 配合 CSS 切換手機/桌機滿版） -->
+      <div class="camera-wrap">
+        <div class="cam-frame">
+          <video id="cameraVideo" autoplay playsinline muted></video>
+          <canvas id="cameraCanvas" style="display:none;"></canvas>
+        </div>
+        <div class="camera-controls">
+          <button id="captureBtn" class="primary">拍照</button>
+          <button id="retakeBtn" class="primary" style="display:none;">重拍</button>
+          <button id="uploadShotBtn" class="primary" style="display:none;">上傳辨識</button>
+          <button id="closeCamera" class="danger">關閉</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 上傳進度條控制
+    document.getElementById("uploadForm").addEventListener("submit", function(e) {
+      e.preventDefault(); // 防止表單直接送出
+      const form = e.target;
+      const fileInput = document.getElementById("fileInput");
+
+      if (!fileInput.files.length) {
+        alert("請選擇圖片！");
+        return;
+      }
+
+      const formData = new FormData(form);
+
+      // 顯示進度條
+      const progressContainer = document.getElementById("progressContainer");
+      const progressBar = document.getElementById("progressBar");
+      const progressText = document.getElementById("progressText");
+      progressContainer.style.display = "block";
+      progressText.style.display = "block";
+      progressBar.style.width = "0%";
+
+      // 模擬進度條
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += Math.random() * 10; // 模擬進度
+        if (progress > 90) progress = 90;
+        progressBar.style.width = progress + "%";
+      }, 200);
+
+      // 送出表單資料到後端 /predict
+      fetch(form.action, {
+        method: form.method,
+        body: formData
+      }).then(response => response.text()).then(html => {
+        clearInterval(interval);
+        progressBar.style.width = "100%";
+
+        setTimeout(() => {
+          document.open();
+          document.write(html);
+          document.close();
+        }, 300); // 延遲讓用戶看到100%
+      }).catch(err => {
+        alert("上傳失敗：" + err);
+      });
+    });
+
+    // ===== 使用說明與關於 =====
+    const guideBtn=document.getElementById("guideBtn");
+    const aboutBtn=document.getElementById("aboutBtn");
+    const guideModal=document.getElementById("guideModal");
+    const aboutModal=document.getElementById("aboutModal");
+    document.getElementById("closeGuide").onclick=()=>guideModal.style.display="none";
+    document.getElementById("closeAbout").onclick=()=>aboutModal.style.display="none";
+    guideBtn.onclick=()=>guideModal.style.display="flex";
+    aboutBtn.onclick=()=>aboutModal.style.display="flex";
+    guideModal.onclick=(e)=>{if(e.target===guideModal)guideModal.style.display="none";};
+    aboutModal.onclick=(e)=>{if(e.target===aboutModal)aboutModal.style.display="none";};
+
+    // ===== 相機控制 =====
+    const cameraBtn=document.getElementById("cameraBtn"),
+          cameraModal=document.getElementById("cameraModal"),
+          videoEl=document.getElementById("cameraVideo"),
+          canvasEl=document.getElementById("cameraCanvas"),
+          captureBtn=document.getElementById("captureBtn"),
+          retakeBtn=document.getElementById("retakeBtn"),
+          uploadShotBtn=document.getElementById("uploadShotBtn"),
+          closeCamera=document.getElementById("closeCamera");
+    let mediaStream=null,capturedBlob=null;
+
+    function stopStream(){if(mediaStream){mediaStream.getTracks().forEach(t=>t.stop());mediaStream=null;}}
+
+    async function startCamera(){
+      try{
+        mediaStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"},audio:false});
+        videoEl.srcObject=mediaStream;await videoEl.play();
+        videoEl.style.display="block";canvasEl.style.display="none";
+        retakeBtn.style.display="none";uploadShotBtn.style.display="none";capturedBlob=null;
+      }catch{alert("無法開啟相機，請確認權限已允許");}
+    }
+
+    cameraBtn.onclick=()=>{cameraModal.style.display="flex";document.body.classList.add('modal-open');setTimeout(startCamera,100);};
+    closeCamera.onclick=()=>{stopStream();cameraModal.style.display="none";document.body.classList.remove('modal-open');};
+    cameraModal.onclick=(e)=>{if(e.target===cameraModal){stopStream();cameraModal.style.display="none";document.body.classList.remove('modal-open');}}
+
+    captureBtn.onclick=()=>{
+      if(!mediaStream)return;
+      const w=videoEl.videoWidth||1280,h=videoEl.videoHeight||720;
+      canvasEl.width=w;canvasEl.height=h;
+      canvasEl.getContext("2d").drawImage(videoEl,0,0,w,h);
+      canvasEl.toBlob(blob=>{capturedBlob=blob;videoEl.style.display="none";canvasEl.style.display="block";
+        retakeBtn.style.display="inline-block";uploadShotBtn.style.display="inline-block";stopStream();
+      },"image/jpeg",0.92);
+    };
+
+    retakeBtn.onclick=()=>startCamera();
+	uploadShotBtn.onclick = async () => {
+	  if (!capturedBlob) { alert("請先拍照"); return; }
+
+	  const fd = new FormData();
+	  fd.append("file", new File([capturedBlob], "camera.jpg", { type: "image/jpeg" }));
+
+	  // 把兩個勾選也一併送給後端
+	  const chkOrig  = document.querySelector('input[name="output_original"]');
+	  const chkCircle = document.querySelector('input[name="output_circle"]');
+	  if (chkOrig && chkOrig.checked)   fd.append('output_original', '1');
+	  if (chkCircle && chkCircle.checked) fd.append('output_circle',  '1');
+
+	  // 送到與一般上傳相同的 /predict
+	  const res = await fetch("/predict", { method: "POST", body: fd });
+	  const html = await res.text();
+	  document.open(); document.write(html); document.close();
+	};
+
+  </script>
+</body>
+</html>

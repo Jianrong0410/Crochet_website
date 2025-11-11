@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>重設密碼</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    /* ==============================
+			顏色主題與共用變數
+       - 使用 CSS 變數管理主色、背景與文字顏色
+       ============================== */
+    :root{
+      --primary:#10b981;    /* 主色（綠色） */
+      --primary-2:#0ea5a4;  /* 主色 hover 或副色 */
+      --bg:#f5f6f7;         /* 頁面背景色 */
+      --card:#fff;          /* 卡片背景色 */
+      --text:#333;          /* 主要文字顏色 */
+    }
+
+    /* 基本重設與排版 */
+    *{box-sizing:border-box}
+
+    body{
+      font-family:Arial,Helvetica,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      margin:0;
+      padding:32px;
+    }
+
+    /* 中央卡片容器 */
+    .wrap{
+      max-width:480px;
+      margin:40px auto;
+      background:var(--card);
+      padding:24px;
+      border-radius:12px;
+      box-shadow:0 8px 28px rgba(0,0,0,.08);
+    }
+
+    /* 標題樣式 */
+    h1{
+      margin:0 0 12px;
+      font-size:24px;
+    }
+
+    /* 副標說明文字 */
+    p.sub{
+      margin:0 0 18px;
+      color:#555;
+    }
+
+    /* 欄位標籤樣式 */
+    label{
+      display:block;
+      margin:12px 0 6px;
+    }
+
+    /* 輸入框共用樣式 */
+    input[type="email"],input[type="text"],input[type="password"]{
+      width:100%;
+      padding:12px 14px;
+      border:1px solid #ddd;
+      border-radius:8px;
+      font-size:16px;
+      outline:none;
+    }
+
+    /* 聚焦時邊框變色 */
+    input:focus{border-color:#6b7280}
+
+    /* 提交按鈕樣式 */
+    button{
+      width:100%;
+      margin-top:16px;
+      padding:12px 16px;
+      border:none;
+      border-radius:10px;
+      background:var(--primary);
+      color:#fff;
+      font-size:16px;
+      cursor:pointer;
+    }
+
+    /* 滑鼠移入變色效果 */
+    button:hover{background:var(--primary-2)}
+
+    /* 系統訊息（Flask flash）外觀 */
+    .msg{
+      background:#fff3cd;
+      color:#7c5b00;
+      border:1px solid #ffe69c;
+      padding:10px 12px;
+      border-radius:8px;
+      margin:10px 0;
+    }
+
+    /* 底部連結區域（返回登入） */
+    .links{
+      margin-top:12px;
+      text-align:center;
+    }
+
+    .links a{
+      color:#2563eb;
+      text-decoration:none;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>重設密碼</h1>
+    <p class="sub">請輸入收到的驗證碼，並設定新密碼（驗證碼 10 分鐘內有效）。</p>
+
+    <!-- ==============================
+         Flask flash 訊息顯示
+         - 後端會使用 flash() 傳遞錯誤/成功訊息
+         ============================== -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for m in messages %}
+          <div class="msg">{{ m }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- ==============================
+         重設密碼表單
+         - POST 到 /reset
+         - 包含 Email、驗證碼、新密碼、確認密碼
+         ============================== -->
+    <form method="post" action="{{ url_for('reset_password') }}">
+      <label for="email">Email</label>
+      <input id="email" type="email" name="email" value="{{ email or '' }}" placeholder="yourname@example.com" required>
+
+      <label for="code">驗證碼（6 碼）</label>
+      <input id="code" type="text" name="code" maxlength="6" placeholder="例如：123456" required>
+
+      <label for="pw1">新密碼（至少 6 碼）</label>
+      <input id="pw1" type="password" name="password" minlength="6" required>
+
+      <label for="pw2">再次輸入新密碼</label>
+      <input id="pw2" type="password" name="confirm" minlength="6" required>
+
+      <button type="submit">重設密碼</button>
+    </form>
+
+    <div class="links">
+      <a href="{{ url_for('login') }}">回登入</a>
+    </div>
+  </div>
+</body>
+</html>

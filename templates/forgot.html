@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>忘記密碼</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <style>
+    /* ==============================
+			網站主題色與變數設定
+       ============================== */
+    :root {
+      --primary: #967AA1;      /* 主色（按鈕與重點） */
+      --primary-2: #AAA1C8;    /* 主色 hover 狀態 */
+      --bg: #f5f6f7;           /* 背景顏色 */
+      --card: #fff;            /* 卡片背景色 */
+      --text: #333;            /* 主要文字顏色 */
+    }
+
+    /* 基本設定與排版 */
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 32px;
+    }
+
+    /* 內容外框卡片樣式 */
+    .wrap {
+      max-width: 460px;
+      margin: 40px auto;
+      background: var(--card);
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 8px 28px rgba(0,0,0,.08);
+    }
+
+    /* 標題文字 */
+    h1 {
+      margin: 0 0 12px;
+      font-size: 24px;
+    }
+
+    /* 副標題（說明文字） */
+    p.sub {
+      margin: 0 0 18px;
+      color: #555;
+    }
+
+    /* 表單標籤 */
+    label {
+      display: block;
+      margin: 12px 0 6px;
+    }
+
+    /* 輸入欄位（Email/文字/密碼） */
+    input[type="email"], input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    /* 聚焦時變色提示 */
+    input:focus {
+      border-color: var(--primary);
+    }
+
+    /* 送出按鈕樣式 */
+    button {
+      width: 100%;
+      margin-top: 16px;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 10px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    /* 按鈕 hover 效果 */
+    button:hover {
+      background: var(--primary-2);
+    }
+
+    /* Flash 訊息框樣式（成功/提示用） */
+    .msg {
+      background: #fff3cd;
+      color: #7c5b00;
+      border: 1px solid #ffe69c;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+
+    /* 底部連結樣式（回登入） */
+    .links {
+      margin-top: 12px;
+      text-align: center;
+    }
+    .links a {
+      color: #2563eb;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>忘記密碼</h1>
+    <p class="sub">輸入你註冊的 Email，我們會寄出 6 位數驗證碼。</p>
+
+    <!-- 顯示系統 flash 提示訊息（例如：Email 未註冊、驗證碼已寄出等） -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for m in messages %}
+          <div class="msg">{{ m }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- 表單：輸入 Email 並送出 POST 請求 -->
+    <form method="post">
+      <label for="email">Email</label>
+      <input id="email" type="email" name="email" placeholder="yourname@example.com" required>
+      <button type="submit">寄出驗證碼</button>
+    </form>
+    <div class="links">
+      <a href="{{ url_for('login') }}">回登入</a>
+    </div>
+  </div>
+</body>
+</html>

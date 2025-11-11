@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>註冊</title>
+  <style>
+    /* ==============================
+		 頁面排版與基本樣式設定
+       - 限制寬度、置中顯示
+       ============================== */
+  html, body {
+    height: 100%;
+    background: transparent; /* 背景交給偽元素處理 */
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    margin: 40px;
+    color: #333;
+  }
+
+  /* ✅ 用偽元素鋪滿整個畫面當背景層 */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(rgba(255,255,255,.8), rgba(255,255,255,.8)),
+      url("{{ url_for('static', filename='img/crochet-bg.jpg') }}")
+      center / cover no-repeat;
+  }
+
+  /* 📱 行動裝置：去除 fixed 相容性問題 */
+  @media (max-width: 640px) {
+    body { margin: 20px; }
+    body::before {
+      position: absolute;
+      min-height: 100dvh;
+      height: 100%;
+      background:
+        linear-gradient(rgba(255,255,255,.82), rgba(255,255,255,.82)),
+        url("{{ url_for('static', filename='img/crochet-bg.jpg') }}")
+        center / cover no-repeat;
+    }
+  }
+
+    /* ==============================
+         Flash 訊息樣式
+       - 用於顯示後端提示（如註冊成功或錯誤）
+       ============================== */
+    .flash {
+      background: #fde68a;   /* 黃色背景提醒色 */
+      color: #92400e;        /* 深橘文字 */
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+
+    /* ==============================
+         表單欄位容器
+       - 垂直排列、間距適中
+       ============================== */
+    .row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 10px 0;
+    }
+
+    /* ==============================
+         輸入框樣式
+       - 邊框、圓角與內距
+       ============================== */
+    input {
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      width: 100%;
+    }
+
+    /* ==============================
+         提交按鈕樣式
+       - 藍底白字、滑鼠游標樣式
+       ============================== */
+    button {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    /* ==============================
+			超連結樣式
+       ============================== */
+    a { color: #2563eb; }
+  </style>
+</head>
+<body>
+  <h2>註冊</h2>
+
+  <!-- ==============================
+       Flask flash 訊息顯示區
+       - 顯示後端回傳的錯誤或提示
+       - 使用 Jinja 的 with 區塊
+       ============================== -->
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for m in messages %}
+        <div class="flash">{{ m }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- ==============================
+       註冊表單
+       - method="post"：安全提交
+       - action 指向 /register
+       ============================== -->
+  <form method="post" action="{{ url_for('register') }}">
+    <div class="row">
+      <label for="name">名稱（顯示用）</label>
+      <input id="name" name="name" type="text" required />
+    </div>
+    <div class="row">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" required />
+    </div>
+    <div class="row">
+      <label for="password">密碼（至少 6 碼）</label>
+      <input id="password" name="password" type="password" required minlength="6" />
+    </div>
+    <button type="submit">建立帳號</button>
+  </form>
+
+  <p>已經有帳號？<a href="{{ url_for('login') }}">去登入</a></p>
+</body>
+</html>

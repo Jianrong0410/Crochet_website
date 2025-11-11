@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>{{ title }}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- 
+    顯示單一鉤織針法教學的詳細內容。
+    若有對應圖片，顯示圖片與標題；
+    若尚未建立內容，則顯示提示文字。
+  -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 24px;
+      color: #333;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    a.link {
+      color: #2563eb;
+      text-decoration: none;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .img {
+      width: 100%;
+      max-width: 980px;
+      border-radius: 12px;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .empty {
+      color: #777;
+      text-align: center;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div><a class="link" href="{{ url_for('tutorials') }}">← 返回清單</a></div>
+    <h2 style="margin:0">{{ title }}</h2>
+    <div></div>
+  </div>
+  <!-- ===== 教學內容區塊 ===== -->
+  {% if image_url %}
+    <div class="card">
+      <img class="img" src="{{ image_url }}" alt="{{ title }}">
+    </div>
+  {% else %}
+    <p class="empty">很抱歉，此針法教學目前還未新增，敬請等待更新。</p>
+  {% endif %}
+</body>
+</html>

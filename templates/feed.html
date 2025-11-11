@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>貼文牆</title>
+  <!-- 
+    提供使用者瀏覽貼文動態（貼文牆）。
+    使用者可在此發布新貼文（含文字與圖片），
+    並查看所有使用者的貼文內容、圖片、按讚數與留言數。
+    每篇貼文可直接按讚或進入留言頁。
+  -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 24px;
+      color: #333;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    a.link {
+      color: #2563eb;
+      text-decoration: none;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .author {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #eee;
+    }
+
+    .post-img {
+      width: 100%;
+      max-width: 680px;
+      border-radius: 10px;
+      margin-top: 8px;
+    }
+
+    .meta {
+      font-size: 13px;
+      color: #777;
+      margin-top: 6px;
+    }
+
+    .actions form {
+      display: inline;
+    }
+
+    textarea,
+    input[type="file"] {
+      width: 100%;
+    }
+
+    textarea {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      min-height: 90px;
+      box-sizing: border-box;
+    }
+
+    button {
+      background: #967AA1;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .nums a {
+      color: #2563eb;
+      text-decoration: none;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div><a class="link" href="/">← 返回首頁</a></div>
+    <div>
+      <a class="link" href="{{ url_for('my_likes') }}">我按過的讚</a> |
+      <a class="link" href="{{ url_for('profile') }}">個人介面</a>
+    </div>
+  </div>
+
+  <!-- 發文卡 -->
+  <div class="card">
+    <form method="post" enctype="multipart/form-data">
+      <label>想分享什麼？（可上傳圖片）</label>
+      <textarea name="content" placeholder="寫點什麼吧…"></textarea>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap">
+        <input type="file" name="image" accept="image/*" />
+        <button type="submit">發布</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- 貼文列表 -->
+  {% for p in posts %}
+  <div class="card">
+    <div class="author">
+      <img class="avatar" src="{{ p.author_avatar }}" alt="">
+      <div>
+        <div><a class="link" href="{{ url_for('user_public', uid=p.user_id) }}">{{ p.author_name }}</a></div>
+        <div class="meta">{{ p.created_at }}</div>
+      </div>
+    </div>
+    {% if p.content %}
+      <div style="white-space:pre-wrap; line-height:1.6">{{ p.content }}</div>
+    {% endif %}
+    {% if p.image_url %}
+      <img class="post-img" src="{{ p.image_url }}" alt="">
+    {% endif %}
+
+    <div style="margin-top:10px" class="actions">
+      <form method="post" action="{{ url_for('like_toggle', pid=p.id) }}">
+        <button type="submit">{{ '收回讚' if p.me_liked else '按讚' }}</button>
+      </form>
+      <a class="link" style="margin-left:8px" href="{{ url_for('post_detail', pid=p.id) }}">留言</a>
+      <span class="nums">
+        <a href="{{ url_for('post_detail', pid=p.id) }}">👍 {{ p.like_count }}</a>
+        <a href="{{ url_for('post_detail', pid=p.id) }}">💬 {{ p.comment_count }}</a>
+      </span>
+    </div>
+  </div>
+  {% else %}
+  <p style="text-align:center;color:#666">還沒有任何貼文</p>
+  {% endfor %}
+</body>
+</html>

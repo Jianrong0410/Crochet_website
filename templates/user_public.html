@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>{{ user.name }} 的頁面</title>
+  <!-- 
+    顯示使用者公開個人頁面，包含頭像、簡介、追蹤/粉絲數、
+    是否已追蹤狀態切換，以及使用者所發佈的貼文列表。
+    適用於訪客或其他登入使用者瀏覽他人頁面。
+  -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 24px;
+      color: #333;
+    }
+
+    a.link {
+      color: #2563eb;
+      text-decoration: none;
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .avatar {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #eee;
+    }
+
+    .badge {
+      display: inline-block;
+      border: 1px solid #ddd;
+      border-radius: 999px;
+      padding: 4px 10px;
+      margin-right: 6px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .post-img {
+      width: 100%;
+      max-width: 680px;
+      border-radius: 10px;
+      margin-top: 8px;
+    }
+
+    button {
+      background: #967AA1;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+    <!-- 返回貼文牆連結（導回主動態牆頁面） -->
+  <div style="margin-bottom:12px">
+    <a class="link" href="{{ url_for('feed') }}">← 返回貼文牆</a>
+  </div>
+    <!-- 使用者基本資料卡：頭像、名稱、簡介、追蹤資訊 -->
+  <div class="header card">
+    <img class="avatar" src="{{ user.avatar }}" alt="">
+    <div style="flex:1">
+      <div style="font-size:22px;font-weight:bold">{{ user.name }}</div>
+      <div style="margin:6px 0;color:#555;white-space:pre-wrap">{{ user.bio or '' }}</div>
+	  <!-- 追蹤狀態列 -->
+      <div>
+          <!-- 點擊可查看粉絲/追蹤中列表 -->
+        <a class="badge link" href="{{ url_for('user_followers', uid=user.id) }}">粉絲 {{ user.follower_cnt }}</a>
+        <a class="badge link" href="{{ url_for('user_following', uid=user.id) }}">追蹤中 {{ user.following_cnt }}</a>
+        <span class="badge">加入於 {{ user.created_at }}</span>
+      </div>
+    </div>
+    <div>
+      {% if not user.is_me %}
+        {% if user.is_following %}
+          <form method="post" action="{{ url_for('unfollow_user', uid=user.id) }}"><button type="submit">取消追蹤</button></form>
+        {% else %}
+          <form method="post" action="{{ url_for('follow_user', uid=user.id) }}"><button type="submit">追蹤</button></form>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>貼文</h3>
+    {% for p in posts %}
+      <div style="border-top:1px solid #eee; padding-top:10px; margin-top:10px">
+        {% if p.content %}
+          <div style="white-space:pre-wrap; line-height:1.6">{{ p.content }}</div>
+        {% endif %}
+        {% if p.image_url %}
+          <img class="post-img" src="{{ p.image_url }}" alt="">
+        {% endif %}
+        <div style="margin-top:6px"><a class="link" href="{{ url_for('post_detail', pid=p.id) }}">前往貼文</a></div>
+      </div>
+    {% else %}
+      <div style="color:#666">尚無貼文</div>
+    {% endfor %}
+  </div>
+</div>
+</body>
+</html>

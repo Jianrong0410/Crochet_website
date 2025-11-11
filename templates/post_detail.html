@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>貼文內容</title>
+  <!-- 
+    顯示單篇貼文的完整內容。
+    包含作者資訊、文字內容、圖片、按讚功能、按讚名單、留言列表與留言表單。
+    為互動性頁面，透過伺服端渲染顯示 Jinja2 模板變數。
+  -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 24px;
+      color: #333;
+    }
+
+    a.link {
+      color: #2563eb;
+      text-decoration: none;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .author {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #eee;
+    }
+
+    .post-img {
+      width: 100%;
+      max-width: 720px;
+      border-radius: 10px;
+      margin-top: 8px;
+    }
+
+    .meta {
+      font-size: 13px;
+      color: #777;
+      margin-top: 6px;
+    }
+
+    .liker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 6px 0;
+    }
+
+    .citem {
+      display: flex;
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    .cbody {
+      background: #f3f4f6;
+      border-radius: 10px;
+      padding: 8px 12px;
+      flex: 1;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      min-height: 90px;
+      box-sizing: border-box;
+    }
+
+    button {
+      background: #967AA1;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div style="margin-bottom:12px">
+    <a class="link" href="{{ url_for('feed') }}">← 返回貼文牆</a>
+  </div>
+  <!-- ===== 主貼文內容卡 ===== -->
+  <div class="card">
+    <div class="author">
+      <img class="avatar" src="{{ post.author_avatar }}" alt="">
+      <div>
+        <div><a class="link" href="{{ url_for('user_public', uid=post.user_id) }}">{{ post.author_name }}</a></div>
+        <div class="meta">{{ post.created_at }}</div>
+      </div>
+    </div>
+    {% if post.content %}
+      <div style="white-space:pre-wrap; line-height:1.6">{{ post.content }}</div>
+    {% endif %}
+    {% if post.image_url %}
+      <img class="post-img" src="{{ post.image_url }}" alt="">
+    {% endif %}
+
+    <div style="margin-top:10px">
+      <form method="post" action="{{ url_for('like_toggle', pid=post.id) }}" style="display:inline">
+        <button type="submit">{{ '收回讚' if post.me_liked else '按讚' }}</button>
+      </form>
+    </div>
+  </div>
+  <!-- ===== 按讚名單卡 ===== -->
+  <div class="card">
+    <h3>按讚的人</h3>
+    {% for u in likers %}
+      <div class="liker">
+        <img class="avatar" src="{{ u.avatar }}" alt="">
+        <a class="link" href="{{ url_for('user_public', uid=u.user_id) }}">{{ u.name }}</a>
+      </div>
+    {% else %}
+      <div class="meta">還沒有人按讚</div>
+    {% endfor %}
+  </div>
+  <!-- ===== 留言區卡 ===== -->
+  <div class="card">
+    <h3>留言</h3>
+    {% for c in comments %}
+    <div class="citem">
+      <a href="{{ url_for('user_public', uid=c.user_id) }}"><img class="avatar" src="{{ c.avatar }}" alt=""></a>
+      <div class="cbody">
+        <div style="font-weight:bold"><a class="link" href="{{ url_for('user_public', uid=c.user_id) }}">{{ c.name }}</a></div>
+        <div style="white-space:pre-wrap; line-height:1.6">{{ c.content }}</div>
+        <div class="meta">{{ c.created_at }}</div>
+      </div>
+    </div>
+    {% else %}
+      <div class="meta">還沒有留言</div>
+    {% endfor %}
+    <!-- 新留言輸入表單 -->
+    <form method="post" style="margin-top:10px">
+      <textarea name="content" placeholder="寫下你的留言…"></textarea>
+      <div style="margin-top:8px"><button type="submit">送出留言</button></div>
+    </form>
+  </div>
+</body>
+</html>

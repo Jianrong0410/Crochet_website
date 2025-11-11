@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>鉤織圖文教學</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- 
+    顯示鉤織針法的圖文教學清單。
+    每個教學項目包含名稱、縮圖及連結，點擊可進入詳細頁面。
+    若資料庫中尚無內容，則顯示提示文字。
+  -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 24px;
+      color: #333;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    a.link {
+      color: #2563eb;
+      text-decoration: none;
+    }
+
+    h2 {
+      color: #967AA1;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      color: #777;
+      margin-bottom: 16px;
+    }
+
+    /* 教學項目卡片區：自動排成多欄 */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.1s ease-in-out;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+    }
+
+    .name {
+      font-weight: 600;
+      margin-bottom: 8px;
+      text-align: center;
+      min-height: 3em;
+    }
+
+    .thumb {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 8px;
+      background: #eee;
+    }
+
+    .empty {
+      color: #777;
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .footer-note {
+      margin-top: 32px;
+      padding: 12px;
+      font-size: 14px;
+      color: #555;
+      text-align: center;
+      border-top: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div><a class="link" href="{{ url_for('index') }}">← 返回首頁</a></div>
+    <h2>鉤織圖文教學</h2>
+    <div></div>
+  </div>
+
+  <div class="subtitle">
+    目前收錄：{{ items|length }} 筆
+  </div>
+  <!-- ===== 教學卡片區塊 ===== -->
+  {% if items %}
+  <div class="grid">
+    {% for it in items %}
+    <div class="card">
+      <a class="name link" href="{{ url_for('tutorial_detail', key=it.key) }}">{{ it.title }}</a>
+      <a href="{{ url_for('tutorial_detail', key=it.key) }}">
+        <img class="thumb" src="{{ it.thumb_url }}" alt="{{ it.title }}">
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+    <p class="empty">尚未收錄任何教學圖片。</p>
+  {% endif %}
+
+  <div class="footer-note">
+    資料來源：《針針基礎Q&A》，日本ヴォーグ社出版，繁體中文譯本由世茂出版社發行（2008年）。<br>
+    僅供學術與教學用途，圖片版權屬原出版方所有。
+  </div>
+</body>
+</html>

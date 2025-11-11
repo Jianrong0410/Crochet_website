@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>辨識結果</title>
+<style>
+  /* ===============================
+		頁面整體樣式設定
+     =============================== */
+  body {
+    font-family: Arial, sans-serif;
+    background: #f5f6f7;
+    padding: 20px;
+    text-align: center;
+  }
+
+  /* 標題與說明文字 */
+  h1 { font-size: 30px; margin-bottom: 12px; }
+  p  { font-size: 20px; color: #2b6f97; margin-bottom: 24px; }
+
+  /* 圖片排列區（並排排列兩張圖） */
+  .row {
+    display: flex;
+    gap: 20px;
+    justify-content: space-between;
+    flex-wrap: wrap; /* 手機時自動換行 */
+  }
+
+  /* 單張圖片卡片區塊 */
+  .card {
+    flex: 1 1 48%;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    padding: 10px;
+    border-radius: 10px;
+    background: #fff;
+    text-align: center;
+  }
+
+  /* 圖片外層容器 */
+  .img-wrap {
+    position: relative;
+    width: 100%;
+    height: auto;
+    overflow: hidden;
+  }
+
+  /* 結果圖片樣式 */
+  .result-img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    border-radius: 6px;
+    cursor: grab;
+    transition: transform 0.2s ease;
+  }
+
+  /*  全螢幕顯示樣式（點擊圖片放大用） */
+  .fullscreen {
+    position: fixed !important;
+    top: 0; left: 0;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(0,0,0,0.95);
+    z-index: 999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: grab;
+  }
+
+  /* 返回首頁按鈕樣式 */
+  .btn {
+    margin-top: 20px;
+    padding: 12px 24px;
+    background: #967AA1;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 18px;
+    display: inline-block;
+  }
+</style>
+</head>
+<body>
+
+<h1>辨識完成 ✅</h1>
+<p>以下是辨識結果</p>
+
+<div class="row">
+  {% if show_original %}
+  <div class="card">
+    <h2>輸入圖片</h2>
+    <div class="img-wrap">
+      <img id="inputImage" class="result-img" src="{{ input_image }}">
+    </div>
+  </div>
+  {% endif %}
+
+  {% if show_circle %}
+  <div class="card">
+    <h2>圈圖結果</h2>
+    <div class="img-wrap">
+      <img id="detectedImage" class="result-img" src="{{ detected_image }}">
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<div class="card" style="margin-top:20px;">
+  <h2>辨識文字</h2>
+  <p>{{ objects_text }}</p>
+</div>
+<!-- ===============================
+     💾 儲存辨識結果表單
+     - 提交後由後端儲存到使用者的我的結果
+     =============================== -->
+<form method="post" action="{{ url_for('save_result') }}" style="margin-top: 20px; text-align: center;">
+  <input type="hidden" name="input_image" value="{{ input_image or '' }}">
+  <input type="hidden" name="detected_image" value="{{ detected_image or '' }}">
+  <input type="hidden" name="objects_text" value="{{ objects_text or '' }}">
+  <input type="hidden" name="original_filename" value="{{ original_filename or '' }}">
+  <input type="hidden" name="counts_json" value="{{ counts_json or '' }}">
+
+  <!-- 儲存按鈕 -->
+  <div style="display: inline-flex; gap: 15px;">
+    <button type="submit" style="
+        padding: 10px 20px;
+        border: 2px solid #10b981;
+        border-radius: 8px;
+        background: #10b981;
+        color: #fff;
+        font-size: 15px;
+        cursor: pointer;
+        transition: 0.25s;">
+      💾 儲存到我的結果
+    </button>
+<!--
+    <a href="{{ url_for('history_page') }}" style="
+        padding: 10px 20px;
+        border: 2px solid #2563eb;
+        border-radius: 8px;
+        background: #fff;
+        color: #2563eb;
+        font-size: 15px;
+        text-decoration: none;
+        display: inline-block;
+        transition: 0.25s;">
+      📁 查看我的結果
+    </a>
+	-->
+  </div>
+</form>
+
+<style>
+button:hover {
+  background: #0ea774;
+  border-color: #0ea774;
+}
+a:hover {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+</style>
+
+<a href="/" class="btn">返回首頁</a>
+
+<!-- ===============================
+     - 提供圖片放大、拖曳、雙擊關閉全螢幕
+     - 支援滑鼠滾輪縮放與手機雙指縮放
+     =============================== -->
+<script>
+let scale = 1;				 // 縮放比例
+let offsetX = 0, offsetY = 0;// 拖曳偏移量
+let isDragging = false;
+let dragStartX, dragStartY;
+
+// 取得所有結果圖片
+const imgs = document.querySelectorAll(".result-img");
+
+/* 點擊圖片 → 進入全螢幕檢視模式 */
+imgs.forEach(img => {
+    img.addEventListener("click", () => {
+        if (!img.classList.contains("fullscreen")) {
+            img.classList.add("fullscreen");
+            scale = 1; offsetX = 0; offsetY = 0;
+            img.style.transform = "translate(0px,0px) scale(1)";
+        }
+    });
+	
+    /* 雙擊圖片 → 離開全螢幕 */
+    img.addEventListener("dblclick", () => {
+        img.classList.remove("fullscreen");
+        scale = 1; offsetX = 0; offsetY = 0;
+        img.style.transform = "translate(0px,0px) scale(1)";
+    });
+	
+    /* 滑鼠按下 → 準備拖曳 */
+    img.addEventListener("mousedown", (e) => {
+        if (!img.classList.contains("fullscreen")) return;
+        isDragging = true;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        e.preventDefault();
+    });
+});
+
+/* 滑鼠拖曳圖片移動 */
+window.addEventListener("mousemove", (e) => {
+    const fullscreenImg = document.querySelector(".fullscreen");
+    if (!isDragging || !fullscreenImg) return;
+    let dx = e.clientX - dragStartX;
+    let dy = e.clientY - dragStartY;
+    offsetX += dx;
+    offsetY += dy;
+    fullscreenImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+});
+
+/* 滑鼠放開停止拖曳 */
+window.addEventListener("mouseup", () => { isDragging = false; });
+
+/* Ctrl + 滾輪縮放圖片 */
+window.addEventListener("wheel", e => {
+    const fullscreenImg = document.querySelector(".fullscreen");
+    if (!fullscreenImg) return;
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    scale += e.deltaY * -0.01;
+    scale = Math.min(Math.max(0.5, scale), 20);
+    fullscreenImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+}, { passive: false });
+
+/* 視窗大小改變時維持圖片位置 */
+window.addEventListener("resize", () => {
+    document.querySelectorAll(".fullscreen").forEach(img => {
+        img.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+    });
+});
+
+/* ===============================
+		手機雙指縮放支援
+   =============================== */
+let lastTouchDistance = 0;
+window.addEventListener("touchstart", e => {
+    if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        lastTouchDistance = Math.hypot(dx, dy);
+    }
+}, { passive: false });
+
+window.addEventListener("touchmove", e => {
+    const fullscreenImg = document.querySelector(".fullscreen");
+    if (!fullscreenImg || e.touches.length < 2) return;
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const newDistance = Math.hypot(dx, dy);
+	// 若兩指距離明顯變短 → 離開全螢幕
+    if (newDistance < lastTouchDistance * 0.7) {
+        fullscreenImg.classList.remove("fullscreen");
+        scale = 1; offsetX = 0; offsetY = 0;
+        fullscreenImg.style.transform = "translate(0px,0px) scale(1)";
+    }
+}, { passive: false });
+</script>
+</body>
+</html>
