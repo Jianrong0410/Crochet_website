@@ -17,7 +17,12 @@ from email.mime.text import MIMEText
 from email.header import Header
 import time
 ALLOWED_IMG_EXTS = ('.jpg', '.jpeg', '.png', '.webp', '.gif')
-app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, "..", "templates"),
+    static_folder=os.path.join(BASE_DIR, "..", "static")
+)
 # Session 加密金鑰（建議用環境變數設定正式值）
 app.secret_key = os.environ.get('FLASK_SECRET', 'dev-secret')  # 建議改環境變數
 
